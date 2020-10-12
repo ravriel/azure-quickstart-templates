@@ -1,0 +1,30 @@
+variables:
+  ARM_PASS: $(adminPass)
+
+trigger:
+- none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - 
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '101-webapp-linux-managed-mysql'
+    Contents: '**'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: 'Newwave AZURE LAB(d5dcb05d-0f24-4679-970d-3e0309d2bd79)'
+    subscriptionId: 'd5dcb05d-0f24-4679-970d-3e0309d2bd79'
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: 'ARMPipelinesLAMP-rg'
+    location: 'West Europe'
+    templateLocation: 'Linked artifact'
+    csmFile: '$(Build.ArtifactStagingDirectory)/azuredeploy.json'
+    csmParametersFile: '$(Build.ArtifactStagingDirectory)/azuredeploy.parameters.json'
+    overrideParameters: '-siteName $(siteName) -administratorLogin $(adminUser) -administratorLoginPassword $(ARM_PASS)'
+    deploymentMode: 'Incremental'
